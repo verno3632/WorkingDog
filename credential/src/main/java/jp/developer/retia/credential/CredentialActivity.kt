@@ -7,12 +7,15 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.credentials.*
 import androidx.credentials.exceptions.CreateCredentialCancellationException
@@ -30,9 +33,12 @@ class CredentialActivity : ComponentActivity() {
         setContent {
             CredentialSampleScreen(onClickSave = { id, password ->
                 lifecycleScope.launch {
+                    if(id.isNullOrEmpty() || password.isNullOrEmpty()) return@launch
                     val request = CreatePasswordRequest(id, password)
                     try {
                         credentialManager.executeCreateCredential(request, this@CredentialActivity)
+                        Toast.makeText(this@CredentialActivity, "id: $id pass: $password を保存しました", Toast.LENGTH_LONG)
+                            .show()
                     } catch (e: CreateCredentialCancellationException) {
                         Toast.makeText(this@CredentialActivity, "キャンセルされました", Toast.LENGTH_LONG)
                             .show()
@@ -76,9 +82,18 @@ fun CredentialSampleScreen(
         var password by remember { mutableStateOf("") }
 
         Text("id")
-        TextField(value = id, onValueChange = { id = it })
+        TextField(
+            value = id,
+            onValueChange = { id = it },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+        )
         Text("パスワード")
-        TextField(value = password, onValueChange = { password = it })
+        TextField(
+            value = password,
+            onValueChange = { password = it },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            visualTransformation = PasswordVisualTransformation()
+        )
         Button(
             onClick = {
                 onClickSave.invoke(id, password)
